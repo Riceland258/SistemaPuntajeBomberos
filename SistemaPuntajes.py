@@ -1,24 +1,22 @@
-import random
-import Database as Conexion
+import tkinter as tk
+from tkinter import ttk
 
-# Genera una lista de 10 números aleatorios entre 1 y 100
-datos = [random.randint(1, 100) for _ in range(10)]
-print("Números aleatorios:", datos)
+# CONSTANTES
+ROOT = tk.Tk()
+ROOT.resizable(False, False) # Deshabilitar redimensionamiento
+ROOT.state('zoomed')  # Iniciar maximizado
+PAD = 12 # Padding general
+COLOR_BG = '#f0f0f0' # Color de fondo
 
-# Inserta los números generados en la tabla Prueba de la base de datos
-for numero in datos:
-    Conexion.CURSOR.execute('INSERT INTO Prueba (numero) VALUES (%s)', (numero,))
-Conexion.DB.commit()
+if __name__ == "__main__":
+    # Configuración de la ventana principal
+    ROOT.title("Sistema de Puntajes")
 
-# Recupera y muestra los números almacenados en la base de datos
-Conexion.CURSOR.execute('SELECT numero FROM Prueba')
+    # Frame principal
+    frame_main = ttk.Frame(ROOT, padding=PAD, relief='ridge')
+    frame_main.pack(fill=tk.BOTH, expand=True)
 
-resultados = Conexion.CURSOR.fetchall()
+    # Contenido
 
-print('Números en la base de datos:', end=' ')
-for (numero,) in resultados:
-    print(numero, end=' ')
-print()
-
-# Destruye la base de datos y cierra la conexión
-Conexion.Destruir_DB()
+    # Iniciar el bucle principal de la interfaz gráfica
+    ROOT.mainloop()

@@ -2,22 +2,18 @@ import mysql.connector
 
 
 def Crear_DB(config):
-    temp_db = mysql.connector.connect(
+    db = mysql.connector.connect(
         host = config['host'],
         user = config['user'],
         password = config['password'])
 
-    cursor = temp_db.cursor()
-    cursor.execute(f'CREATE DATABASE IF NOT EXISTS {config['database']}')
+    with open('bomberos.sql', 'r') as file:
+        with db.cursor() as cursor:
+            cursor.execute(file.read(), multi=True)
 
-    cursor.execute(f'USE {config['database']}')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Prueba (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            numero INT NOT NULL)''')
+        db.commit()
 
-    cursor.close()
-    temp_db.close()
+    print('Base de datos creada exitosamente.')
 
 def Destruir_DB():
     CURSOR.execute('DROP DATABASE IF EXISTS bomberos')
