@@ -46,23 +46,41 @@ def Crear_DB():
     cursor.close()
     conn.close()
 
-try:
-    Destruir_DB()
-    DB = mysql.connector.connect(host='localhost',
-                                 user='root',
-                                 password='',
-                                 database='bomberos')
+def Poblar_DB(DB):
     CRS = DB.cursor()
 
-except mysql.connector.Error as err:
-    if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
-        print("Base de datos no encontrada, creando 'bomberos'.")
-        Crear_DB()
+    eventos = [
+        (1, 'Evento1', 1),
+        (2, 'Evento2', 2),
+        (3, 'Evento3', 3)
+    ]
 
-finally:
-    DB = mysql.connector.connect(host='localhost',
-                                 user='root',
-                                 password='',
-                                 database='bomberos')
-    CRS = DB.cursor()
-    print('Conexión a la base de datos establecida.')
+    for id_evento, evento, puntos in eventos:
+        CRS.execute('INSERT INTO `eventos` (id_evento, evento, puntos) VALUES (%s, %s, %s)',
+                    (id_evento, evento, puntos))
+
+    DB.commit()
+
+def Conectar_DB():
+    try:
+        Destruir_DB()
+        DB = mysql.connector.connect(host='localhost',
+                                    user='root',
+                                    password='',
+                                    database='bomberos')
+        CRS = DB.cursor()
+
+    except mysql.connector.Error as err:
+        if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
+            print("Base de datos no encontrada, creando 'bomberos'.")
+            Crear_DB()
+
+    finally:
+        DB = mysql.connector.connect(host='localhost',
+                                    user='root',
+                                    password='',
+                                    database='bomberos')
+        print('Conexión a la base de datos establecida.')
+        Poblar_DB(DB)
+
+        return DB

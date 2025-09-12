@@ -10,3 +10,5 @@ def Limpiar_ROOT(ROOT):
 def Eventos_Consultar(db):
     crs = db.cursor()
     crs.execute('SELECT * FROM eventos')
+
+    return crs.fetchall()
