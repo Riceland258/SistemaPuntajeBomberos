@@ -20,6 +20,7 @@ if __name__ == '__main__':
     frame_main.pack(fill=tk.BOTH, expand=True)
 
     # Contenido
+    eventos = fn.Eventos_Consultar
 
     # Iniciar el bucle principal de la interfaz gráfica
     ROOT.mainloop()
