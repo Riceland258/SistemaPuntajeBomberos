@@ -1,4 +1,5 @@
 import mysql.connector
+import os
 
 def Destruir_DB():
     db = mysql.connector.connect(host='localhost',
@@ -14,19 +15,36 @@ def Destruir_DB():
     print('Base de datos destruida.')
 
 def Crear_DB():
-    db = mysql.connector.connect(host='localhost',
-                                 user='root',
-                                 password='')
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="")
+
+    # Create a cursor to execute queries
+    cursor = conn.cursor()
+
+    # Open and read the SQL file
+    cursor.execute('CREATE DATABASE `bomberos`')
     
-    crs = db.cursor()
-    crs.execute('CREATE DATABASE IF NOT EXISTS `bomberos`')
-
     with open('bomberos.sql', 'r', encoding='utf8') as file:
-        crs.execute(file.read(), multi=True)
+        sql_queries = file.read()
 
-        db.commit()
+    # Split the SQL file content into individual queries
+    queries = sql_queries.split(';')
 
-    print('Base de datos creada exitosamente.')
+    # Iterate over the queries and execute them
+    for query in queries:
+        try:
+            if query.strip() != '':
+                cursor.execute(query)
+                conn.commit()
+                
+        except Exception as e:
+            print("Error executing query:", str(e))
+
+    # Close the cursor and the database connection
+    cursor.close()
+    conn.close()
 
 try:
     Destruir_DB()
