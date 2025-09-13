@@ -23,7 +23,6 @@ if __name__ == '__main__':
 
     # Eventos
     eventos = fn.Eventos_Consultar()
-    print(eventos)
 
     frame_eventos = ttk.LabelFrame(frame_main, padding=(PAD, halfPAD, 0, 0), text='Eventos')
     frame_eventos.pack(fill='both', expand=True)

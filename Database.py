@@ -112,12 +112,10 @@ def Conectar_DB():
         else:
             print(f"Otro error al conectar a la base de datos: {err}")
 
-    else:
+    finally:
         DB = mysql.connector.connect(**DB_CONFIG)
         print('Conexión a la base de datos establecida.')
         Poblar_DB(DB)
 
         return DB
-    
-    finally:
-        raise SystemExit('No se pudo conectar a la base de datos.')
+        
