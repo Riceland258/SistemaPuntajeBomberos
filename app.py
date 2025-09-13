@@ -50,5 +50,8 @@ if __name__ == '__main__':
     button_Asistencias = ttk.Button(frame_navegar, text='Asistencias')
     button_Asistencias.pack(fill='both', expand=True, side='left', padx=(0, PAD))
 
+    button_Salir = ttk.Button(frame_navegar, text='Salir', command=ROOT.destroy)
+    button_Salir.pack(fill='both', expand=True, side='right')
+    
     # Iniciar el bucle principal de la interfaz gráfica
     ROOT.mainloop()

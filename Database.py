@@ -1,5 +1,6 @@
 import mysql.connector
 import os
+import random
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -48,6 +49,14 @@ def Crear_DB():
     cursor.close()
     db.close()
 
+# CREATE TABLE `personal` (
+#   `nro_legajo` int(10) NOT NULL,
+#   `apellido_nombre` varchar(100) NOT NULL,
+#   `dni` int(8) NOT NULL,
+#   `user` varchar(20) NOT NULL,
+#   `pass` varchar(8) NOT NULL
+# )
+
 def Poblar_DB(DB):
     CRS = DB.cursor()
 
@@ -58,6 +67,22 @@ def Poblar_DB(DB):
         (4, 'Evento4', 4),
         (5, 'Evento5', 5),
     ]
+    
+    personal_nombres = ['Alberto', 'Bruno', 'Carlos', 'Diego', 'Esteban', 'Facundo', 'Gustavo', 'Hernan', 'Ignacio', 'Javier']
+    personal_apellidos = ['Gomez', 'Fernandez', 'Lopez', 'Martinez', 'Garcia', 'Rodriguez', 'Sanchez', 'Ramirez', 'Torres', 'Flores']
+    random.seed(0)  # Fijar la semilla para reproducibilidad
+    
+    for i in range(21):
+        nro_legajo = i + 100
+        apellido_nombre = f"{random.choice(personal_apellidos)} {random.choice(personal_nombres)}"
+        dni = random.randint(30000000, 50000000)
+        user = f"user{i}"
+        password = str(random.randint(1000, 9999))
+        
+        CRS.execute('INSERT INTO `personal` (nro_legajo, apellido_nombre, dni, user, pass) VALUES (%s, %s, %s, %s, %s)',
+                    (nro_legajo, apellido_nombre, dni, user, password))
+    
+    DB.commit()
 
     for id_evento, evento, puntos in eventos:
         CRS.execute('INSERT INTO `eventos` (id_evento, evento, puntos) VALUES (%s, %s, %s)',
