@@ -99,10 +99,25 @@ def Conectar_DB():
         if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
             print("Base de datos no encontrada, creando 'bomberos'.")
             Crear_DB()
+        
+        elif err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Error de acceso: nombre de usuario o contraseña incorrectos.")
+            
+        elif err.errno == mysql.connector.errorcode.ER_BAD_HOST_ERROR:
+            print("Error de host")
+            
+        elif err.errno == mysql.connector.errorcode.CR_CONN_HOST_ERROR:
+            print("Error de conexión a la base de datos. ¿Está abierto XAMPP?")
+        
+        else:
+            print(f"Otro error al conectar a la base de datos: {err}")
 
-    finally:
+    else:
         DB = mysql.connector.connect(**DB_CONFIG)
         print('Conexión a la base de datos establecida.')
         Poblar_DB(DB)
 
         return DB
+    
+    finally:
+        raise SystemExit('No se pudo conectar a la base de datos.')
