@@ -52,10 +52,19 @@ def build_ui(parent):
     ttk.Label(form, text='Apellido y Nombre*').grid(row=0, column=1, sticky='w')
     ent_apellido_nombre = ttk.Entry(form, textvariable=var_apellido_nombre)
     ent_apellido_nombre.grid(row=1, column=1, columnspan=3, sticky='ew', padx=(0, PAD))
+    def _validate_nombre(P):
+        return not any(ch.isdigit() for ch in P)
+    _vcmd_nombre = parent.register(_validate_nombre)
+    ent_apellido_nombre.configure(validate='key', validatecommand=(_vcmd_nombre, '%P'))
 
     ttk.Label(form, text='DNI*').grid(row=0, column=4, sticky='w')
     ent_dni = ttk.Entry(form, textvariable=var_dni, width=15)
     ent_dni.grid(row=1, column=4, sticky='ew', padx=(0, PAD))
+    def _validate_num(P):
+        return P.isdigit() or P == ''
+    _vcmd_num = parent.register(_validate_num)
+    ent_legajo.configure(validate='key', validatecommand=(_vcmd_num, '%P'))
+    ent_dni.configure(validate='key', validatecommand=(_vcmd_num, '%P'))
 
     ttk.Label(form, text='Usuario*').grid(row=0, column=5, sticky='w')
     ent_user = ttk.Entry(form, textvariable=var_user)
@@ -118,15 +127,18 @@ def build_ui(parent):
     }
 
     def bind_select(event):
-        on_select_row_handler(state)
+        try:
+            on_select_row_handler(state)
+        except Exception as e:
+            messagebox.showerror('Error', f'Ocurrió un error al seleccionar la fila.\n{e}')
 
     tree.bind('<<TreeviewSelect>>', bind_select)
 
-    ttk.Button(btns, text='Nuevo', command=lambda: clear_form(state)).grid(row=0, column=0, padx=2)
-    ttk.Button(btns, text='Guardar', command=lambda: create_or_update(state)).grid(row=0, column=1, padx=2)
-    ttk.Button(btns, text='Eliminar', command=lambda: delete_selected(state)).grid(row=0, column=2, padx=2)
-    ttk.Button(search_bar, text='Buscar', command=lambda: search(state)).grid(row=0, column=2)
-    ttk.Button(search_bar, text='Refrescar', command=lambda: refresh(state)).grid(row=0, column=3, padx=(PAD//2, 0))
+    ttk.Button(btns, text='Nuevo', command=safe_cmd(clear_form, state)).grid(row=0, column=0, padx=2)
+    ttk.Button(btns, text='Guardar', command=safe_cmd(create_or_update, state)).grid(row=0, column=1, padx=2)
+    ttk.Button(btns, text='Eliminar', command=safe_cmd(delete_selected, state)).grid(row=0, column=2, padx=2)
+    ttk.Button(search_bar, text='Buscar', command=safe_cmd(search, state)).grid(row=0, column=2)
+    ttk.Button(search_bar, text='Refrescar', command=safe_cmd(refresh, state)).grid(row=0, column=3, padx=(PAD//2, 0))
 
     return state
 
@@ -168,14 +180,23 @@ def _validate_inputs(state):
     except ValueError:
         messagebox.showwarning('Validación', 'El Nro Legajo debe ser numérico.')
         return None
+    if legajo <= 0:
+        messagebox.showwarning('Validación', 'El Nro Legajo debe ser un número positivo.')
+        return None
     try:
         dni = int(state['var_dni'].get())
     except ValueError:
         messagebox.showwarning('Validación', 'El DNI debe ser numérico.')
         return None
+    if dni <= 0:
+        messagebox.showwarning('Validación', 'El DNI debe ser un número positivo.')
+        return None
     usuario = state['var_user'].get().strip()
     clave = state['var_pass'].get()
     nombre = state['var_apellido_nombre'].get().strip()
+    if any(ch.isdigit() for ch in nombre):
+        messagebox.showwarning('Validación', 'Apellido y Nombre no debe contener números.')
+        return None
     if len(usuario) > 20:
         messagebox.showwarning('Validación', 'Usuario no debe superar 20 caracteres.')
         return None
@@ -202,6 +223,8 @@ def refresh(state):
         populate_table(state, rows)
     except Error as e:
         messagebox.showerror('DB Error', f'No se pudo obtener el listado.\n{e}')
+    except Exception as e:
+        messagebox.showerror('Error', f'Ocurrió un error inesperado al actualizar la lista.\n{e}')
     finally:
         try:
             cur.close()
@@ -231,6 +254,8 @@ def search(state):
         populate_table(state, rows)
     except Error as e:
         messagebox.showerror('DB Error', f'No se pudo buscar.\n{e}')
+    except Exception as e:
+        messagebox.showerror('Error', f'Ocurrió un error inesperado durante la búsqueda.\n{e}')
     finally:
         try:
             cur.close()
@@ -269,6 +294,8 @@ def create_or_update(state):
             messagebox.showerror('Duplicado', f'El legajo {legajo} ya existe.')
         else:
             messagebox.showerror('DB Error', f'No se pudo guardar.\n{e}')
+    except Exception as e:
+        messagebox.showerror('Error', f'Ocurrió un error inesperado al guardar.\n{e}')
     finally:
         try:
             cur.close()
@@ -311,12 +338,22 @@ def delete_selected(state):
         clear_form(state)
     except Error as e:
         messagebox.showerror('DB Error', f'No se pudo eliminar.\n{e}')
+    except Exception as e:
+        messagebox.showerror('Error', f'Ocurrió un error inesperado al eliminar.\n{e}')
     finally:
         try:
             cur.close()
             conn.close()
         except Exception:
             pass
+
+def safe_cmd(fn, *args, **kwargs):
+    def _inner():
+        try:
+            fn(*args, **kwargs)
+        except Exception as e:
+            messagebox.showerror('Error', f'Ocurrió un error.\n{e}')
+    return _inner
 
 def abrir_abm_personal(parent=None):
     if parent is None:
