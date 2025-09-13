@@ -1,10 +1,15 @@
 import mysql.connector
 import os
 
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': '',  
+    'database': 'bomberos',
+}
+
 def Destruir_DB():
-    db = mysql.connector.connect(host='localhost',
-                                 user='root',
-                                 password='')
+    db = mysql.connector.connect(**{k: v for k, v in DB_CONFIG.items() if k != 'database'})  # Conectar sin especificar la base de datos
     crs = db.cursor()
 
     crs.execute('DROP DATABASE IF EXISTS `bomberos`')
@@ -15,13 +20,10 @@ def Destruir_DB():
     print('Base de datos destruida.')
 
 def Crear_DB():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="")
+    db = mysql.connector.connect(**{k: v for k, v in DB_CONFIG.items() if k != 'database'})
 
     # Create a cursor to execute queries
-    cursor = conn.cursor()
+    cursor = db.cursor()
 
     # Open and read the SQL file
     cursor.execute('CREATE DATABASE `bomberos`')
@@ -37,14 +39,14 @@ def Crear_DB():
         try:
             if query.strip() != '':
                 cursor.execute(query)
-                conn.commit()
+                db.commit()
                 
         except Exception as e:
             print("Error executing query:", str(e))
 
     # Close the cursor and the database connection
     cursor.close()
-    conn.close()
+    db.close()
 
 def Poblar_DB(DB):
     CRS = DB.cursor()
@@ -52,7 +54,9 @@ def Poblar_DB(DB):
     eventos = [
         (1, 'Evento1', 1),
         (2, 'Evento2', 2),
-        (3, 'Evento3', 3)
+        (3, 'Evento3', 3),
+        (4, 'Evento4', 4),
+        (5, 'Evento5', 5),
     ]
 
     for id_evento, evento, puntos in eventos:
@@ -64,11 +68,7 @@ def Poblar_DB(DB):
 def Conectar_DB():
     try:
         Destruir_DB()
-        DB = mysql.connector.connect(host='localhost',
-                                    user='root',
-                                    password='',
-                                    database='bomberos')
-        CRS = DB.cursor()
+        DB = mysql.connector.connect(**DB_CONFIG)
 
     except mysql.connector.Error as err:
         if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
@@ -76,10 +76,7 @@ def Conectar_DB():
             Crear_DB()
 
     finally:
-        DB = mysql.connector.connect(host='localhost',
-                                    user='root',
-                                    password='',
-                                    database='bomberos')
+        DB = mysql.connector.connect(**DB_CONFIG)
         print('Conexión a la base de datos establecida.')
         Poblar_DB(DB)
 

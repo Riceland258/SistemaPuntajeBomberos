@@ -6,7 +6,7 @@ from mysql.connector import Error
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'mysql',  
+    'password': '',  
     'database': 'bomberos',
 }
 
@@ -336,5 +336,5 @@ def abrir_abm_personal(parent=None):
         win.grab_set()
         return win
 
-if __name__ == '__main__':
-    abrir_abm_personal()
+# if __name__ == '__main__':
+#     abrir_abm_personal()
