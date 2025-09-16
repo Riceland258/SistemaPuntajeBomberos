@@ -18,7 +18,6 @@ def Reset_ROOT():
         widget.destroy()
 
 def Redireccionar(rol):
-    print(rol)
     if rol == '1':
         Menu_Root()
     elif rol == '2':
@@ -53,17 +52,17 @@ def Menu_Root():
     frame_navegar = ttk.LabelFrame(frame_main, padding=(PAD, halfPAD, 0, PAD), text='Navegar')
     frame_navegar.pack(fill='both', expand=False)
 
-    button_Personal = ttk.Button(frame_navegar, text='Personal', command=lambda: abm_personal.abrir_abm_personal())
-    button_Personal.pack(fill='both', expand=True, side='left', padx=(0, PAD))
+    button_personal = ttk.Button(frame_navegar, text='Personal', command=lambda: abm_personal.abrir_abm_personal())
+    button_personal.pack(fill='both', expand=True, side='left', padx=(0, PAD))
     
-    button_Eventos = ttk.Button(frame_navegar, text='Eventos')
-    button_Eventos.pack(fill='both', expand=True, side='left', padx=(0, PAD))
+    button_eventos = ttk.Button(frame_navegar, text='Eventos')
+    button_eventos.pack(fill='both', expand=True, side='left', padx=(0, PAD))
     
-    button_Asistencias = ttk.Button(frame_navegar, text='Asistencias')
-    button_Asistencias.pack(fill='both', expand=True, side='left', padx=(0, PAD))
+    button_asistencias = ttk.Button(frame_navegar, text='Asistencias')
+    button_asistencias.pack(fill='both', expand=True, side='left', padx=(0, PAD))
 
-    button_Salir = ttk.Button(frame_navegar, text='Salir', command=ROOT.destroy)
-    button_Salir.pack(fill='both', expand=True, side='right')    
+    button_salir = ttk.Button(frame_navegar, text='Salir', command=ROOT.destroy)
+    button_salir.pack(fill='both', expand=True, side='right', padx=(0, PAD))    
     
 if __name__ == '__main__':
     # Configuración de la ventana principal
@@ -88,4 +87,5 @@ if __name__ == '__main__':
     button_login.pack(fill='both', expand=True)
     
     # Iniciar el bucle principal de la interfaz gráfica
+    print('Administrador: admin / admin')
     ROOT.mainloop()
