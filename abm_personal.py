@@ -6,7 +6,7 @@ from mysql.connector import Error
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': '',  
+    'password': 'mysql',  
     'database': 'bomberos',
 }
 
@@ -137,6 +137,7 @@ def build_ui(parent):
     ttk.Button(btns, text='Nuevo', command=safe_cmd(clear_form, state)).grid(row=0, column=0, padx=2)
     ttk.Button(btns, text='Guardar', command=safe_cmd(create_or_update, state)).grid(row=0, column=1, padx=2)
     ttk.Button(btns, text='Eliminar', command=safe_cmd(delete_selected, state)).grid(row=0, column=2, padx=2)
+    ttk.Button(btns, text='Salir', command=safe_cmd(exit_app, state)).grid(row=0, column=3, padx=2)
     ttk.Button(search_bar, text='Buscar', command=safe_cmd(search, state)).grid(row=0, column=2)
     ttk.Button(search_bar, text='Refrescar', command=safe_cmd(refresh, state)).grid(row=0, column=3, padx=(PAD//2, 0))
 
@@ -149,6 +150,12 @@ def clear_form(state):
     state['var_user'].set('')
     state['var_pass'].set('')
     state['ent_legajo'].focus_set()
+
+def exit_app(state):
+    """Función para salir de la aplicación"""
+    if messagebox.askyesno('Confirmar salida', '¿Está seguro que desea salir?'):
+        state['root'].quit()
+        state['root'].destroy()
 
 def on_select_row_handler(state):
     tree = state['tree']
@@ -359,19 +366,25 @@ def abrir_abm_personal(parent=None):
     if parent is None:
         root = tk.Tk()
         root.title('ABM Personal - Bomberos')
-        root.state('zoomed')
+        root.attributes('-fullscreen', True)  # Pantalla completa sin barra de tareas
+        # Permitir salir con Escape
+        root.bind('<Escape>', lambda e: root.attributes('-fullscreen', False))
+        root.bind('<F11>', lambda e: root.attributes('-fullscreen', not root.attributes('-fullscreen')))
         state = build_ui(root)
         refresh(state)
         root.mainloop()
     else:
         win = tk.Toplevel(parent)
         win.title('ABM Personal - Bomberos')
-        win.geometry('1024x600')
+        win.attributes('-fullscreen', True)  # Pantalla completa sin barra de tareas
+        # Permitir salir con Escape
+        win.bind('<Escape>', lambda e: win.attributes('-fullscreen', False))
+        win.bind('<F11>', lambda e: win.attributes('-fullscreen', not win.attributes('-fullscreen')))
         state = build_ui(win)
         refresh(state)
         win.transient(parent)
         win.grab_set()
         return win
 
-# if __name__ == '__main__':
-#     abrir_abm_personal()
+if __name__ == '__main__':
+    abrir_abm_personal()
