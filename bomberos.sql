@@ -91,7 +91,8 @@ CREATE TABLE `personal` (
   `apellido_nombre` varchar(100) NOT NULL,
   `dni` int(8) NOT NULL,
   `user` varchar(20) NOT NULL,
-  `pass` varchar(8) NOT NULL
+  `pass` varchar(8) NOT NULL,
+  `rol` varchar(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

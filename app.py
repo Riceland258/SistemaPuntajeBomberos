@@ -13,9 +13,22 @@ ROOT.state('zoomed')  # Iniciar maximizado
 PAD = 12 # Padding general
 halfPAD = PAD // 2
 
-if __name__ == '__main__':
-    # Configuración de la ventana principal
-    ROOT.title('Bomberos')
+def Reset_ROOT():
+    for widget in ROOT.winfo_children():
+        widget.destroy()
+
+def Redireccionar(rol):
+    print(rol)
+    if rol == '1':
+        Menu_Root()
+    elif rol == '2':
+        pass
+    elif rol == '3':
+        pass
+
+def Menu_Root():
+    ROOT.title('Root')
+    Reset_ROOT()
 
     # Frame principal
     frame_main = ttk.Frame(ROOT, padding=(PAD**2, PAD, PAD**2, PAD), relief='ridge')
@@ -50,7 +63,29 @@ if __name__ == '__main__':
     button_Asistencias.pack(fill='both', expand=True, side='left', padx=(0, PAD))
 
     button_Salir = ttk.Button(frame_navegar, text='Salir', command=ROOT.destroy)
-    button_Salir.pack(fill='both', expand=True, side='right')
+    button_Salir.pack(fill='both', expand=True, side='right')    
+    
+if __name__ == '__main__':
+    # Configuración de la ventana principal
+    ROOT.title('Inicio de sesión')
+
+    frame_main = ttk.Frame(ROOT, padding=(PAD**2, PAD, PAD**2, PAD), relief='ridge')
+    frame_main.pack(fill='both', expand=True)
+
+    frame_usuario = ttk.LabelFrame(frame_main, padding=PAD, text='Usuario')
+    frame_usuario.pack(fill='both', pady=(0, PAD))
+
+    entry_usuario = ttk.Entry(frame_usuario)
+    entry_usuario.pack(fill='x', expand=True)
+
+    frame_contrasenia = ttk.LabelFrame(frame_main, padding=PAD, text='Contraseña')
+    frame_contrasenia.pack(fill='both', pady=(0, PAD))
+
+    entry_contrasenia = ttk.Entry(frame_contrasenia, show='*')
+    entry_contrasenia.pack(fill='x', expand=True)
+
+    button_login = ttk.Button(frame_main, text='Iniciar sesión', command=lambda: Redireccionar(fn.Iniciar_Sesion(entry_usuario.get(), entry_contrasenia.get())))
+    button_login.pack(fill='both', expand=True)
     
     # Iniciar el bucle principal de la interfaz gráfica
     ROOT.mainloop()
