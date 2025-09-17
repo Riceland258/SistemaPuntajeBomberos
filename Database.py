@@ -61,11 +61,11 @@ def Poblar_DB(DB):
     CRS = DB.cursor()
 
     eventos = [
-        (1, 'Evento1', 1),
-        (2, 'Evento2', 2),
-        (3, 'Evento3', 3),
-        (4, 'Evento4', 4),
-        (5, 'Evento5', 5),
+        ('Evento1', 1),
+        ('Evento2', 2),
+        ('Evento3', 3),
+        ('Evento4', 4),
+        ('Evento5', 5),
     ]
     
     personal = [
@@ -80,9 +80,9 @@ def Poblar_DB(DB):
     
     DB.commit()
 
-    for id_evento, evento, puntos in eventos:
-        CRS.execute('INSERT INTO `eventos` (id_evento, evento, puntos) VALUES (%s, %s, %s)',
-                    (id_evento, evento, puntos))
+    for evento, puntos in eventos:
+        CRS.execute('INSERT INTO `eventos` (evento, puntos) VALUES (%s, %s)',
+                    (evento, puntos))
 
     DB.commit()
 
@@ -114,4 +114,3 @@ def Conectar_DB():
         Poblar_DB(DB)
 
         return DB
-        

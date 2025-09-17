@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 DB = db.Conectar_DB()
+PAD = 12
 
 def Limpiar_ROOT(ROOT):
     for child in ROOT.winfo_children():
