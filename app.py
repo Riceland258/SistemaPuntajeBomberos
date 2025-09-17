@@ -56,7 +56,7 @@ def Menu_Root():
     button_personal = ttk.Button(frame_navegar, text='Personal', command=lambda: abm_personal.abrir_abm_personal())
     button_personal.pack(fill='both', expand=True, side='left', padx=(0, PAD))
     
-    button_eventos = ttk.Button(frame_navegar, text='Eventos', command=lambda: martin_abm_eventos.ABM_Eventos())
+    button_eventos = ttk.Button(frame_navegar, text='Eventos', command=lambda: martin_abm_eventos.Abrir())
     button_eventos.pack(fill='both', expand=True, side='left', padx=(0, PAD))
     
     button_asistencias = ttk.Button(frame_navegar, text='Asistencias')
