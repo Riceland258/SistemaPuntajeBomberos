@@ -35,11 +35,9 @@ def Abrir():
     window.resizable(False, False)
     window.state('zoomed')
     ABM_Eventos(window)
+    window.mainloop()
 
-def ABM_Eventos(window, parent=None):
-    if parent:
-        window = tkinter.Toplevel(parent)
-
+def ABM_Eventos(window):
     Limpiar(window)
 
     frame_main = ttk.Frame(window, padding=PAD, relief='ridge')
@@ -72,7 +70,7 @@ def ABM_Eventos(window, parent=None):
 
         match button:
             case 'Salir':
-                 button_.config(command=window.destroy)
+                 button_.config(command=lambda: window.destroy())
 
             case 'Eliminar':
                 button_.config(command=lambda: [_Eventos.Eliminar(tree.item(tree.selection())['values'][0]), ABM_Eventos(window)])
@@ -82,8 +80,6 @@ def ABM_Eventos(window, parent=None):
 
             case 'Agregar':
                 button_.config(command=lambda: ABM_Agregar(window, _Eventos))
-
-    window.mainloop()
 
 def ABM_Agregar(window, _Eventos):
     Limpiar(window)    
