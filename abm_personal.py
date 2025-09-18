@@ -134,7 +134,7 @@ def build_ui(parent):
 
     tree.bind('<<TreeviewSelect>>', bind_select)
 
-    ttk.Button(btns, text='Nuevo', command=safe_cmd(clear_form, state)).grid(row=0, column=0, padx=2)
+    ttk.Button(btns, text='Limpiar', command=safe_cmd(clear_form, state)).grid(row=0, column=0, padx=2)
     ttk.Button(btns, text='Guardar', command=safe_cmd(create_or_update, state)).grid(row=0, column=1, padx=2)
     ttk.Button(btns, text='Eliminar', command=safe_cmd(delete_selected, state)).grid(row=0, column=2, padx=2)
     ttk.Button(btns, text='Salir', command=safe_cmd(exit_app, state)).grid(row=0, column=3, padx=2)
