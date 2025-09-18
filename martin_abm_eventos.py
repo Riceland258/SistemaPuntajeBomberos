@@ -1,6 +1,9 @@
 import mysql.connector
 import tkinter
 from tkinter import ttk, messagebox
+import re
+
+import Funciones as fn
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -13,11 +16,13 @@ halfPAD = PAD // 2
 squaredPAD = PAD ** 2
 
 Mensajes = {
-    'ERROR_CAMPOS_VACIOS': 'Error: No se permiten campos vacíos.',
-    'ERROR_PUNTOS_INVALIDOS': 'Error: Los puntos deben ser un número entero positivo.',
-    'EXITO_EVENTO_AGREGADO': 'Éxito: Evento agregado correctamente.',
-    'EXITO_EVENTO_MODIFICADO': 'Éxito: Evento modificado correctamente.',
-    'EXITO_EVENTO_ELIMINADO': 'Éxito: Evento eliminado correctamente.',
+    'ERROR_CAMPOS_VACIOS'          : 'Error: No se permiten campos vacíos.',
+    'ERROR_EVENTO_PUNTOS'          : 'Error: Los puntos deben ser un número entero positivo menor o igual a 10.',
+    'ERROR_EVENTO_NO_SELECCIONADO' : 'Error: No se ha seleccionado ningún evento.',
+    'ERROR_EVENTO_NOMBRE'          : 'Error: El nombre del evento no es válido. Solo se permiten letras, números y espacios, con una longitud máxima de 100 caracteres.',
+    'EXITO_EVENTO_AGREGADO'        : 'Éxito: Evento agregado correctamente.',
+    'EXITO_EVENTO_MODIFICADO'      : 'Éxito: Evento modificado correctamente.',
+    'EXITO_EVENTO_ELIMINADO'       : 'Éxito: Evento eliminado correctamente.',
 }
 
 def Limpiar(frame):
@@ -72,6 +77,9 @@ def ABM_Eventos(window, parent=None):
             case 'Eliminar':
                 button_.config(command=lambda: [_Eventos.Eliminar(tree.item(tree.selection())['values'][0]), ABM_Eventos(window)])
 
+            case 'Modificar':
+                button_.config(command=lambda: ABM_Modificar(window, _Eventos, tree.item(tree.selection())['values'][0], tree.item(tree.selection())['values'][1], tree.item(tree.selection())['values'][2]) if tree.selection() else messagebox.showerror('Error', Mensajes['ERROR_EVENTO_NO_SELECCIONADO']))
+
             case 'Agregar':
                 button_.config(command=lambda: ABM_Agregar(window, _Eventos))
 
@@ -107,6 +115,38 @@ def ABM_Agregar(window, _Eventos):
     button_guardar = ttk.Button(frame_botones, text='Guardar', command=lambda: [_Eventos.Agregar(entry_nombre.get(), entry_puntos.get()), ABM_Eventos(window)])
     button_guardar.pack(side='left', fill='x', expand=True, padx=PAD)
 
+def ABM_Modificar(window, _Eventos, evento_id, evento_nombre, evento_puntos):
+    Limpiar(window)    
+
+    frame_main = ttk.Frame(window, padding=(squaredPAD, PAD, squaredPAD, PAD), relief='ridge')
+    frame_main.pack(fill='both', expand=True)
+
+    frame_entradas = ttk.LabelFrame(frame_main, padding=(PAD, halfPAD, PAD , PAD), text='Modificar Evento')
+    frame_entradas.pack(fill='both', expand=True)
+
+    frame_nombre = ttk.LabelFrame(frame_entradas, text='Nombre del Evento')
+    frame_nombre.pack(fill='x', expand=True, pady=(0, PAD))
+
+    entry_nombre = ttk.Entry(frame_nombre)
+    entry_nombre.insert(0, evento_nombre)
+    entry_nombre.pack(fill='x', expand=True, padx=PAD, pady=halfPAD)
+
+    frame_puntos = ttk.LabelFrame(frame_entradas, text='Puntos del Evento')
+    frame_puntos.pack(fill='x', expand=True, pady=(0, PAD))
+
+    entry_puntos = ttk.Entry(frame_puntos)
+    entry_puntos.insert(0, evento_puntos)
+    entry_puntos.pack(fill='x', expand=True, padx=PAD, pady=halfPAD)
+
+    frame_botones = ttk.LabelFrame(frame_main, padding=PAD, text='Acciones')
+    frame_botones.pack(fill=tkinter.BOTH, expand=False)
+
+    button_cancelar = ttk.Button(frame_botones, text='Cancelar', command=lambda: ABM_Eventos(window=window))
+    button_cancelar.pack(side='left', fill='x', expand=True)
+
+    button_guardar = ttk.Button(frame_botones, text='Guardar', command=lambda: [_Eventos.Modificar(evento_id, entry_nombre.get(), entry_puntos.get()), ABM_Eventos(window)])
+    button_guardar.pack(side='left', fill='x', expand=True, padx=PAD)
+
 class Eventos:
     def __init__(self):
         self.DB = mysql.connector.connect(**DB_CONFIG)
@@ -135,8 +175,11 @@ class Eventos:
         crs.close()
 
     def Modificar(self, evento_id, evento, puntos):
+        if not self.Validar(evento, puntos):
+            return
+        
         crs = self.DB.cursor()
-        crs.execute('UPDATE eventos SET evento = %s, puntos = %s WHERE id_evento = %s', (evento, puntos, id_evento))
+        crs.execute('UPDATE eventos SET evento = %s, puntos = %s WHERE id_evento = %s', (evento, puntos, evento_id))
         self.DB.commit()
         crs.close()
 
@@ -150,16 +193,20 @@ class Eventos:
         if not evento or not puntos:
             messagebox.showerror('Error', Mensajes['ERROR_CAMPOS_VACIOS'])
             return False
+
+        if not re.match(r'^[\w\s]{1,100}$', evento):
+            messagebox.showerror('Error', Mensajes['ERROR_EVENTO_NOMBRE'])
+            return False
         
         try:
             puntos = int(puntos)
             
-            if puntos < 0:
-                messagebox.showerror('Error', Mensajes['ERROR_PUNTOS_INVALIDOS'])
+            if puntos < 1 or puntos > 10:
+                messagebox.showerror('Error', Mensajes['ERROR_EVENTO_PUNTOS'])
                 return False
             
         except ValueError:
-            messagebox.showerror('Error', Mensajes['ERROR_PUNTOS_INVALIDOS'])
+            messagebox.showerror('Error', Mensajes['ERROR_EVENTO_PUNTOS'])
             return False
 
         messagebox.showinfo('Éxito', Mensajes['EXITO_EVENTO_AGREGADO'])
