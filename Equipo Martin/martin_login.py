@@ -2,10 +2,7 @@ import tkinter
 from tkinter import ttk, messagebox
 import mysql.connector
 
-import Database as db
-import Funciones as fn
-
-import abm_personal
+import facu_abm_personal
 import martin_abm_eventos
 
 DB_CONFIG = {
@@ -95,7 +92,7 @@ def Menu_Root(window):
                 button_.config(command=lambda: martin_abm_eventos.Abrir())
 
             case 'Personal':
-                button_.config(command=lambda: abm_personal.abrir_abm_personal())
+                button_.config(command=lambda: facu_abm_personal.abrir_abm_personal())
 
             case 'Recargar':
                 button_.config(command=lambda: Menu_Root(window))

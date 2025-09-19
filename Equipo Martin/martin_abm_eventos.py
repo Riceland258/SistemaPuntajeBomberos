@@ -3,8 +3,6 @@ import tkinter
 from tkinter import ttk, messagebox
 import re
 
-import Funciones as fn
-
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
