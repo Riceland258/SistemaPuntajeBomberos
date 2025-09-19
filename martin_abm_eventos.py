@@ -164,6 +164,8 @@ class Eventos:
     def Agregar(self, evento, puntos):
         if not self.Validar(evento, puntos):
             return
+
+        messagebox.showinfo('Éxito', Mensajes['EXITO_EVENTO_AGREGADO'])
         
         crs = self.DB.cursor()
         crs.execute('INSERT INTO eventos (evento, puntos) VALUES (%s, %s)', (evento, puntos))
@@ -173,6 +175,8 @@ class Eventos:
     def Modificar(self, evento_id, evento, puntos):
         if not self.Validar(evento, puntos):
             return
+
+        messagebox.showinfo('Éxito', Mensajes['EXITO_EVENTO_MODIFICADO'])
         
         crs = self.DB.cursor()
         crs.execute('UPDATE eventos SET evento = %s, puntos = %s WHERE id_evento = %s', (evento, puntos, evento_id))
@@ -205,7 +209,6 @@ class Eventos:
             messagebox.showerror('Error', Mensajes['ERROR_EVENTO_PUNTOS'])
             return False
 
-        messagebox.showinfo('Éxito', Mensajes['EXITO_EVENTO_AGREGADO'])
         return True
 
 if __name__ == "__main__":

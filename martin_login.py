@@ -79,7 +79,7 @@ def Menu_Root(window):
     frame_navegar = ttk.LabelFrame(frame_main, padding=(PAD, halfPAD, PAD, PAD), text='Navegar')
     frame_navegar.pack(fill='both', expand=False)
 
-    buttons_navegar = ['Salir', 'Asistencias', 'Eventos', 'Personal']
+    buttons_navegar = ['Salir', 'Asistencias', 'Eventos', 'Personal', 'Recargar']
     for button in buttons_navegar:
         button_ = ttk.Button(frame_navegar, text=button)
         button_.pack(side='left', fill='x', expand=True, padx=(0, PAD) if button != buttons_navegar[-1] else 0)
@@ -95,7 +95,10 @@ def Menu_Root(window):
                 button_.config(command=lambda: martin_abm_eventos.Abrir())
 
             case 'Personal':
-                button_.config(command=lambda: abm_personal.abrir_abm_personal())    
+                button_.config(command=lambda: abm_personal.abrir_abm_personal())
+
+            case 'Recargar':
+                button_.config(command=lambda: Menu_Root(window))
     
 def Menu_Login(window):
     Limpiar(window)
