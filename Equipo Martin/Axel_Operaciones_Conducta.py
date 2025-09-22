@@ -1,9 +1,9 @@
 # ====================== IMPORTACIONES ======================
 import tkinter as tk
 from tkinter import messagebox
-from Base_de_Datos import Conectar
-from Operaciones_Personal import comprobar_existencia
-from Utilidades import centrar_ventana
+from Axel_Base_de_Datos import Conectar
+from Axel_Operaciones_Personal import comprobar_existencia
+from Axel_Utilidades import centrar_ventana
 
 # ================= VENTANA LISTADO CONDUCTA =================
 
@@ -16,7 +16,7 @@ def mostrar_ventana_listado_conducta(self):
     self.lift()
 
 def abrir_actualizar(self, fila):
-    from Ventana_Editar_Conducta import VentanaEditorConducta
+    from Axel_Ventana_Editar_Conducta import VentanaEditorConducta
     ventana = VentanaEditorConducta(fila["id_conducta"], fila, parent=self, listado=self)
     centrar_ventana(ventana)
     ventana.grab_set()
