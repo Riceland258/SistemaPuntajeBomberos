@@ -71,7 +71,7 @@ def abrir_ventana_editor_bombero(ventana_busqueda_bombero):
     centrar_ventana(ventana_busqueda_bombero)
 
 def abrir_editor_bombero(self):
-    from Ventana_Editar_Bomberos import VentanaEditorBomberos
+    from Axel_Ventana_Editar_Bomberos import VentanaEditorBomberos
     ventana_busqueda = VentanaEditorBomberos(self)
     abrir_ventana_editor_bombero(ventana_busqueda)
 
@@ -83,7 +83,7 @@ def abrir_ventana_listado_bombero(ventana_actual, ventana_listado_bombero):
     centrar_ventana(ventana_listado_bombero)
 
 def abrir_ventana_listado_cuerpo_bomberos(ventana_actual):
-    from Ventana_Listado_Cuerpo_Bomberos import VentanaListadoCuerpoBomberos
+    from Axel_Ventana_Listado_Cuerpo_Bomberos import VentanaListadoCuerpoBomberos
     # Creamos el objeto
     ventana_listado_cuerpo = VentanaListadoCuerpoBomberos(ventana_actual)
     ventana_listado_cuerpo.deiconify()
