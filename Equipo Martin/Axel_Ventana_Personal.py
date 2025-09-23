@@ -5,7 +5,7 @@ from Axel_Operaciones_Personal import abrir_ventana_listado_cuerpo_bomberos
 
 # ====================== VENTANA ======================
 
-class VentanaConducta(tk.Tk):
+class VentanaPersonal(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Gestión de Personal")
@@ -138,5 +138,5 @@ class VentanaConducta(tk.Tk):
         ).grid(row=2, column=0, columnspan=2, padx=5, pady=(0,10), sticky="we")
 
 if __name__ == "__main__":
-    app = VentanaConducta()
+    app = VentanaPersonal()
     app.mainloop()
