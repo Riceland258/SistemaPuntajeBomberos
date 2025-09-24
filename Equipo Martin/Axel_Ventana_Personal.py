@@ -15,7 +15,7 @@ class VentanaPersonal(tk.Tk):
 
     def crear_widgets(self):
         # MENUS
-        opciones_rango_bombero = ["3", "2", "1"]
+        opciones_rango_bombero = ["1", "2", "3"]
         self.var_rango = tk.StringVar(value=opciones_rango_bombero[0])
 
         # CONTENEDOR
