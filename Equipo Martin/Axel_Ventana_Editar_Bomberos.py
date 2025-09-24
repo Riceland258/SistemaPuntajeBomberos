@@ -5,10 +5,10 @@ from Axel_Operaciones_Personal import actualizar_personal_revision
 # ====================== VENTANA ======================
 
 class VentanaEditorBomberos(tk.Toplevel):
-    def __init__(self, parent=None, resultados=None):
+    def __init__(self, parent=None, datos_bombero=None):
         super().__init__(parent)
         self.parent = parent
-        self.resultados = resultados or []
+        self.datos_bombero = datos_bombero or {}
         self.title("Editor Bomberos")
         self.configure(bg="#2b2b2b")
         self.crear_tabla()
@@ -119,7 +119,7 @@ class VentanaEditorBomberos(tk.Toplevel):
             frame_botones, text="Actualizar",
             font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666", activeforeground="white",
             relief="flat", bd=0, height=2,
-            command=lambda: actualizar_personal_revision(self.entradas_personal)
+            command=self.actualizar_bombero
         ).grid(row=0, column=0, padx=5, pady=(0,10), sticky="we")
 
         # BOTÓN BORRAR
@@ -137,3 +137,52 @@ class VentanaEditorBomberos(tk.Toplevel):
             relief="flat", bd=0, height=2,
             command=self.destroy,
         ).grid(row=1, column=0, columnspan=2, padx=5, pady=(0,10), sticky="we")
+
+        self.cargar_datos()
+
+    def cargar_datos(self):
+        if self.datos_bombero and 'nro_legajo' in self.datos_bombero:
+            from Axel_Operaciones_Personal import obtener_datos_bombero
+            datos_completos = obtener_datos_bombero(self.datos_bombero['nro_legajo'])
+            
+            if datos_completos:
+                # Cargar legajo
+                self.entrada_legajo.insert(0, str(datos_completos['nro_legajo']))
+                self.entrada_legajo.config(state='disabled')
+
+                # Cargar DNI
+                self.entrada_dni.insert(0, str(datos_completos['dni']))
+                
+                # Separar apellido y nombre del campo apellido_nombre
+                apellido_nombre = datos_completos.get('apellido_nombre', '')
+                if ', ' in apellido_nombre:
+                    apellido, nombre = apellido_nombre.split(', ', 1)
+                    self.entrada_apellido.insert(0, apellido)
+                    self.entrada_nombre.insert(0, nombre)
+                else:
+                    self.entrada_apellido.insert(0, apellido_nombre)
+                
+                # Cargar rango
+                self.var_rango.set(str(datos_completos['rango']))
+                
+                # Cargar contraseña
+                self.entrada_pass.insert(0, datos_completos.get('pass', ''))
+
+    def actualizar_bombero(self):
+        from Axel_Operaciones_Personal import actualizar_personal_revision
+        
+        # Realizar la actualización
+        resultado = actualizar_personal_revision(self.entradas_personal)
+        
+        # Si la actualización fue exitosa
+        if resultado is True:
+            # Refrescar la lista en la ventana padre si existe
+            if self.parent and hasattr(self.parent, 'tree') and hasattr(self.parent, 'cargar_mas'):
+                # Limpiar la tabla actual
+                self.parent.tree.delete(*self.parent.tree.get_children())
+                # Resetear offset para cargar desde el principio
+                self.parent.offset = 0
+                # Recargar los datos
+                self.parent.cargar_mas()
+            
+            self.destroy()
