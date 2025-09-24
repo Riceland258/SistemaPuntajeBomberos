@@ -1,7 +1,9 @@
 # ====================== IMPORTACIONES ======================
 import tkinter as tk
-from tkinter import ttk
-from Axel_Operaciones_Personal import (abrir_editor_bombero, buscar, buscar_si_vacio, cargar_mas, editar_fila, on_double_click, volver_ventana_principal)
+from tkinter import ttk, messagebox
+from Axel_Base_de_Datos import Conectar
+from Axel_Operaciones_Personal import (abrir_editor_bombero, volver_ventana_principal)
+from Axel_Utilidades import centrar_ventana
 
 # ====================== VENTANA ======================
 
@@ -42,11 +44,11 @@ class VentanaListadoCuerpoBomberos(tk.Toplevel):
 
         tk.Button(frame_busqueda, text="🔍",
                 font=("Arial", 16, "bold"), bg="#ff4d4d", fg="white",
-                command=lambda: buscar(self)
+                command=lambda: self.buscar()
             ).pack(side="left", padx=(5,0))
 
-        self.entry_buscar.bind("<Return>", lambda e: buscar(self))
-        self.entry_buscar.bind("<FocusOut>", lambda e: buscar_si_vacio(self))
+        self.entry_buscar.bind("<Return>", lambda e: self.buscar())
+        self.entry_buscar.bind("<FocusOut>", lambda e: self.buscar_si_vacio())
 
         # FRAME CENTRAL
         frame_tabla = tk.Frame(marco, bg="#2b2b2b")
@@ -76,7 +78,7 @@ class VentanaListadoCuerpoBomberos(tk.Toplevel):
         style.map("Treeview", background=[("selected", "#ffd966")], foreground=[("selected", "#000000")])
         self.tree.tag_configure("oddrow", background="#4d4d4d", foreground="white")
         self.tree.tag_configure("evenrow", background="#666666", foreground="white")
-        self.tree.bind("<Double-1>", lambda e: on_double_click(self, e))
+        self.tree.bind("<Double-1>", lambda e: self.on_double_click(e))
 
         # FRAME INFERIOR
         frame_botones = tk.Frame(marco, bg="#2b2b2b")
@@ -87,7 +89,7 @@ class VentanaListadoCuerpoBomberos(tk.Toplevel):
         frame_editar.pack(side="left", expand=True)
         self.btn_editar = tk.Button(frame_editar, text="Editar",
                                 font=("Arial", 14, "bold"), width=20, bg="#ff4d4d", fg="white", activebackground="#ffd966",
-                                command=lambda: editar_fila(self)
+                                command=lambda: self.editar_fila()
                             )
         self.btn_editar.pack(pady=5)
 
@@ -103,7 +105,92 @@ class VentanaListadoCuerpoBomberos(tk.Toplevel):
         # BOTON CARGAR MAS
         self.btn_mas = tk.Button(marco, text="Cargar más",
                                 font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white",
-                                command=lambda: cargar_mas(self)
+                                command=lambda: self.cargar_mas()
                             )
         self.btn_mas.pack(pady=5)
-        cargar_mas(self)
+        self.cargar_mas()
+
+    def buscar(self):
+        self.filtro_actual = self.entry_buscar.get().strip()
+        self.offset = 0
+        self.tree.delete(*self.tree.get_children())
+        self.cargar_mas()
+
+    def buscar_si_vacio(self):
+        if self.entry_buscar.get().strip() == "":
+            self.filtro_actual = ""
+            self.offset = 0
+            self.tree.delete(*self.tree.get_children())
+            self.cargar_mas()
+
+    def cargar_mas(self):
+        conexion = Conectar()
+        cursor = conexion.cursor(dictionary=True)
+        
+        if self.filtro_actual:
+            # Buscar SOLO por legajo o DNI
+            filtro_texto = self.filtro_actual.strip()
+            cursor.execute(
+                "SELECT nro_legajo, apellido_nombre, dni, rango "
+                "FROM personal "
+                "WHERE (CAST(nro_legajo AS CHAR) LIKE %s "
+                "OR CAST(dni AS CHAR) LIKE %s) "
+                "ORDER BY rango DESC "
+                "LIMIT %s OFFSET %s",
+                (f"%{filtro_texto}%", f"%{filtro_texto}%",
+                 int(self.FILAS_POR_BLOQUE), int(self.offset))
+            )
+        else:
+            cursor.execute(
+                "SELECT nro_legajo, apellido_nombre, dni, rango "
+                "FROM personal "
+                "ORDER BY rango DESC "
+                "LIMIT %s OFFSET %s",
+                (int(self.FILAS_POR_BLOQUE), int(self.offset))
+            )
+        
+        bloque = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        
+        for i, fila in enumerate(bloque):
+            tag = "evenrow" if (self.offset + i) % 2 == 0 else "oddrow"
+            self.tree.insert("", "end", values=(fila["nro_legajo"], fila["apellido_nombre"], fila["dni"], fila["rango"]), tags=(tag,))
+
+        self.offset += len(bloque)
+
+        if len(bloque) < self.FILAS_POR_BLOQUE:
+            self.btn_mas.pack_forget()
+        else:
+            self.btn_mas.pack(pady=5)
+
+    def editar_fila(self):
+        seleccion = self.tree.selection()
+        if seleccion:
+            # Obtener datos de la fila seleccionada
+            item = self.tree.item(seleccion[0])
+            valores = item['values']
+            
+            # Crear diccionario con los datos del bombero
+            datos_bombero = {
+                'nro_legajo': valores[0],
+                'apellido_nombre': valores[1],
+                'dni': valores[2],
+                'rango': valores[3]
+            }
+            
+            # Separar apellido y nombre
+            if ', ' in datos_bombero['apellido_nombre']:
+                apellido, nombre = datos_bombero['apellido_nombre'].split(', ', 1)
+                datos_bombero['apellido'] = apellido
+                datos_bombero['nombre'] = nombre
+            else:
+                datos_bombero['apellido'] = datos_bombero['apellido_nombre']
+                datos_bombero['nombre'] = ''
+            
+            abrir_editor_bombero(self, datos_bombero)
+        else:
+            messagebox.showwarning("Atención", "Debe seleccionar una fila antes de editar")
+
+    def on_double_click(self, event):
+        self.editar_fila()
