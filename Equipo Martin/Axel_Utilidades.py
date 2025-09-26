@@ -64,16 +64,12 @@ def manejar_conexion_bd(cursor, conexion, exito=True):
 # from martin_login import rol_usuario  # Importar valor global del login
 # global rol_usuario  # Definir como variable global
 
+# Rol temporal
 rol = 3
 
 # Rol 3: Acceso completo - Personal y Conducta
 # Rol 2: Acceso medio - Solo Personal  
 # Rol 1: Sin permisos - Solo lectura
-
-# Funciones de permisos eliminadas porque no se usaban:
-# - verificar_permisos_personal(rol)
-# - verificar_permisos_conducta(rol) 
-# - obtener_nivel_acceso(rol)
 
 # ================= BLOQUEO DE BOTONES POR PERMISOS ================
 def bloquear_botones_personal(ventana):
@@ -103,22 +99,12 @@ def _bloquear_botones_accion(ventana):
 def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_padre=None):
     ventana_mensaje = tk.Toplevel(ventana_padre)
     ventana_mensaje.title(titulo)
-    ventana_mensaje.configure(bg="#333333")
+    ventana_mensaje.configure(bg="black")
     ventana_mensaje.resizable(False, False)
     ventana_mensaje.grab_set()  # Modal
     
-    # Configurar colores según el tipo
-    colores_tipo = {
-        "informacion": {"fondo": "#4CAF50", "texto": "white"},
-        "advertencia": {"fondo": "#FF9800", "texto": "white"},
-        "error": {"fondo": "#F44336", "texto": "white"},
-        "pregunta": {"fondo": "#2196F3", "texto": "white"}
-    }
-    
-    color_seleccionado = colores_tipo.get(tipo, colores_tipo["informacion"])
-    
     # MARCO PRINCIPAL
-    marco_principal = tk.Frame(ventana_mensaje, bg="#333333", padx=20, pady=20)
+    marco_principal = tk.Frame(ventana_mensaje, bg="black", padx=20, pady=20)
     marco_principal.pack(expand=True, fill="both")
     
     # ETIQUETA MENSAJE
@@ -126,7 +112,7 @@ def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_pa
         marco_principal, 
         text=mensaje,
         font=("Arial", 12, "bold"),
-        bg="#333333", 
+        bg="black", 
         fg="white",
         wraplength=400,
         justify="center"
@@ -134,7 +120,7 @@ def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_pa
     etiqueta_mensaje.pack(pady=(0, 20))
     
     # MARCO BOTONES
-    marco_botones = tk.Frame(marco_principal, bg="#333333")
+    marco_botones = tk.Frame(marco_principal, bg="black")
     marco_botones.pack()
     
     respuesta_usuario = None
@@ -158,7 +144,7 @@ def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_pa
         boton_si = tk.Button(
             marco_botones, text="Sí",
             font=("Arial", 11, "bold"),
-            bg=color_seleccionado["fondo"], fg=color_seleccionado["texto"],
+            bg="green", fg="white",
             command=al_hacer_clic_si, width=8
         )
         boton_si.pack(side="left", padx=5)
@@ -166,7 +152,7 @@ def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_pa
         boton_no = tk.Button(
             marco_botones, text="No",
             font=("Arial", 11, "bold"),
-            bg="#666666", fg="white",
+            bg="red", fg="white",
             command=al_hacer_clic_no, width=8
         )
         boton_no.pack(side="left", padx=5)
@@ -174,7 +160,7 @@ def cuadro_mensaje_personalizado(titulo, mensaje, tipo="informacion", ventana_pa
         boton_ok = tk.Button(
             marco_botones, text="OK",
             font=("Arial", 11, "bold"),
-            bg=color_seleccionado["fondo"], fg=color_seleccionado["texto"],
+            bg="blue", fg="white",
             command=al_hacer_clic_ok, width=10
         )
         boton_ok.pack()
