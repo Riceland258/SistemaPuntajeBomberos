@@ -3,6 +3,7 @@ import tkinter as tk
 import datetime
 from Axel_Operaciones_Conducta import puntuar_conducta_revision
 from Axel_Ventana_Listado_Conducta import VentanaListadoConducta
+from Axel_Utilidades import configurar_validacion_numerica, prevenir_doble_click, bloquear_botones_conducta, mostrar_error_personalizado
 
 # ====================== VENTANA ======================
 
@@ -14,6 +15,7 @@ class VentanaConducta(tk.Tk):
         self.configure(bg="#2b2b2b")
         self.ventana_listado_conducta = VentanaListadoConducta(self)
         self.crear_widgets()
+        self.configurar_validaciones()
 
     def crear_widgets(self):
         # MENU PUNTAJE
@@ -22,6 +24,7 @@ class VentanaConducta(tk.Tk):
 
         # MENU MESES
         meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio", "Julio","Agosto","Septiembre", "Octubre","Noviembre","Diciembre"]
+        mes_actual = datetime.datetime.now().month
         self.var_mes = tk.StringVar(value=meses[mes_actual - 1])
 
         # CONTENEDOR
@@ -48,9 +51,9 @@ class VentanaConducta(tk.Tk):
                 font=("Arial", 14, "bold"), fg="white", bg="#333333"
             ).grid(row=3, column=0, pady=(10,5), sticky="w")
         menu_punto = tk.OptionMenu(contenedor, self.var_punto, *opciones_punto_conducta)
-        menu_punto.config(font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666", relief="flat", width=20)
+        menu_punto.config(font=("Arial", 14, "bold"), bg="#ffd966", fg="black", activebackground="#ff6666", relief="flat", width=20)
         menu_punto.grid(row=4, column=0, pady=(0,10), sticky="we")
-        menu_punto["menu"].config(font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white")
+        menu_punto["menu"].config(font=("Arial", 14, "bold"), bg="#ffd966", fg="black")
 
         # FECHA ( Mes / Año )
         tk.Label(contenedor, text="Mes / Año:",
@@ -62,11 +65,10 @@ class VentanaConducta(tk.Tk):
         frame_fecha.columnconfigure(1, weight=1)
 
         # FECHA ( Mes )
-        mes_actual = datetime.datetime.now().month
         menu_mes = tk.OptionMenu(frame_fecha, self.var_mes, *meses)
-        menu_mes.config(font=("Arial", 14, "bold"), bg="#ffd966", fg="black", relief="flat", activebackground="#fbe190", width=20)
+        menu_mes.config(font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", relief="flat", activebackground="#fbe190", width=20)
         menu_mes.grid(row=0, column=0, padx=(0,5), sticky="we")
-        menu_mes["menu"].config(font=("Arial", 14, "bold"), bg="#ffd966", fg="black")
+        menu_mes["menu"].config(font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white")
 
         # FECHA ( Año )
         self.entrada_anio = tk.Entry(frame_fecha,
@@ -92,9 +94,9 @@ class VentanaConducta(tk.Tk):
 
         # BOTÓN PUNTUAR CONDUCTA
         tk.Button(frame_botones, text="Puntuar Conducta",
-                font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666",
+                font=("Arial", 14, "bold"), bg="#ffd966", fg="black", activebackground="#ff6666",
                 height=2,
-                command=lambda: puntuar_conducta_revision(self.entradas_conducta)
+                command=self.registrar_conducta_dc
             ).grid(row=0, column=0, columnspan=2, padx=5, sticky="we")
 
         # BOTÓN REGISTRO CONDUCTA
@@ -110,6 +112,42 @@ class VentanaConducta(tk.Tk):
                 height=2,
                 command=self.destroy
             ).grid(row=4, column=0, columnspan=2, padx=5, sticky="we")
+
+        # Bloquear botones según permisos
+        bloquear_botones_conducta(self)
+
+    def configurar_validaciones(self):
+        # Usar función centralizada para validaciones numéricas
+        configurar_validacion_numerica(self.entrada_legajo)
+        configurar_validacion_numerica(self.entrada_anio)
+
+    def registrar_conducta_dc(self):
+        try:
+            # Evita doble click
+            prevenir_doble_click(self, "Puntuar Conducta")
+            
+            legajo_original = self.entrada_legajo.get().strip()
+            
+            puntuar_conducta_revision(self.entradas_conducta)
+            
+            if legajo_original:
+                self.limpiar_formulario()
+            
+        except Exception as e:
+            mostrar_error_personalizado("Error", "Hubo un problema al registrar la conducta", self)
+
+    def limpiar_formulario(self):
+        self.entrada_legajo.delete(0, tk.END)
+        self.var_punto.set("1")
+        
+        import datetime
+        meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio", "Julio","Agosto","Septiembre", "Octubre","Noviembre","Diciembre"]
+        mes_actual = datetime.datetime.now().month
+        self.var_mes.set(meses[mes_actual - 1])
+        
+        self.entrada_anio.delete(0, tk.END)
+        anio_actual = datetime.datetime.now().year
+        self.entrada_anio.insert(0, str(anio_actual))
 
 if __name__ == "__main__":
     app = VentanaConducta()
