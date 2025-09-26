@@ -85,8 +85,16 @@ class VentanaListadoConducta(tk.Toplevel):
         self.tree.tag_configure("evenrow", background="#666666", foreground="white")
         
         self.tree.bind("<Double-1>", self.on_double_click)
+        # Múltiples eventos de scroll para detección inmediata
         scrollbar.bind("<ButtonRelease-1>", self.on_scroll)
-        self.tree.bind("<MouseWheel>", self.on_scroll)
+        scrollbar.bind("<B1-Motion>", self.on_scroll)  # Mientras arrastra la barra
+        self.tree.bind("<MouseWheel>", self.on_scroll)  # Rueda del mouse
+        self.tree.bind("<Button-4>", self.on_scroll)    # Scroll up en Linux
+        self.tree.bind("<Button-5>", self.on_scroll)    # Scroll down en Linux
+        self.tree.bind("<Up>", self.on_scroll)          # Flecha arriba
+        self.tree.bind("<Down>", self.on_scroll)        # Flecha abajo
+        self.tree.bind("<Prior>", self.on_scroll)       # Page up
+        self.tree.bind("<Next>", self.on_scroll)        # Page down
 
         # FRAME INFERIOR
         frame_botones = tk.Frame(marco, bg="#2b2b2b")
@@ -99,10 +107,12 @@ class VentanaListadoConducta(tk.Toplevel):
                                     )
         self.btn_actualizar.pack(side="left", padx=5, pady=5, expand=True)
 
-        # BOTÓN CARGAR MÁS (en el medio, inicialmente oculto)
-        self.btn_mas = tk.Button(frame_botones, text="Cargar Más",
-                                font=("Arial", 14, "bold"), width=20, bg="#4d4d4d", fg="white", activebackground="#666666",
-                                command=self.cargar_mas_manual
+        # BOTÓN CARGAR MÁS - Pequeño signo "+" en el centro
+        self.btn_mas = tk.Button(frame_botones, text="+",
+                                font=("Arial", 18, "bold"), width=3, 
+                                bg="#4d4d4d", fg="white", activebackground="#666666",
+                                command=self.cargar_mas_manual,
+                                relief="solid", bd=1
                             )
 
         # BOTÓN VOLVER
@@ -125,6 +135,8 @@ class VentanaListadoConducta(tk.Toplevel):
         self.recargar_tabla()
         self.state("zoomed")
         self.lift()
+        # Asegurar que el scroll esté al inicio al mostrar la ventana
+        self.after(100, lambda: self.tree.yview_moveto(0))
         if self.parent:
             # Ocultar la actual después de un pequeño retraso
             self.after(50, lambda: self.parent.withdraw())
@@ -140,6 +152,8 @@ class VentanaListadoConducta(tk.Toplevel):
         self.offset = 0
         self.filtro_actual = ""
         self.tree.delete(*self.tree.get_children())
+        # Reiniciar scroll al inicio
+        self.tree.yview_moveto(0)
         self.cargar_mas()
 
     def cargar_mas(self):
@@ -211,11 +225,10 @@ class VentanaListadoConducta(tk.Toplevel):
             # Controlar si hay más registros
             if len(bloque) < self.FILAS_POR_BLOQUE:
                 self.hay_mas_registros = False
-                self.btn_mas.pack_forget()
+                self.btn_mas.place_forget()
             else:
                 self.hay_mas_registros = True
-                if self.btn_mas.winfo_manager() != "pack":
-                    self.btn_mas.pack(pady=10)
+                # No mostrar el botón automáticamente, dejar que on_scroll() lo maneje
                 
         except Exception as e:
             mostrar_error_personalizado("Error", "Hubo un problema al cargar los registros", self)
@@ -242,10 +255,11 @@ class VentanaListadoConducta(tk.Toplevel):
         self.filtro_actual = self.entry_buscar.get().strip()
         self.offset = 0
         self.tree.delete(*self.tree.get_children())
-        # Restablecer el botón "Cargar más" para cualquier búsqueda
-        self.hay_mas_registros = True
+        # Ocultar el botón inicialmente y dejar que cargar_mas() determine si debe mostrarse
         if hasattr(self, 'btn_mas'):
-            self.btn_mas.pack(pady=10)
+            self.btn_mas.place_forget()
+        # Reiniciar scroll al inicio
+        self.tree.yview_moveto(0)
         self.cargar_mas()
 
     def buscar_si_vacio(self):
@@ -253,10 +267,11 @@ class VentanaListadoConducta(tk.Toplevel):
             self.filtro_actual = ""
             self.offset = 0
             self.tree.delete(*self.tree.get_children())
-            # Restablecer el botón "Cargar más" cuando se limpia la búsqueda
-            self.hay_mas_registros = True
+            # Ocultar el botón inicialmente y dejar que cargar_mas() determine si debe mostrarse
             if hasattr(self, 'btn_mas'):
-                self.btn_mas.pack(pady=10)
+                self.btn_mas.place_forget()
+            # Reiniciar scroll al inicio
+            self.tree.yview_moveto(0)
             self.cargar_mas()
 
     def on_double_click(self, event):
@@ -272,20 +287,35 @@ class VentanaListadoConducta(tk.Toplevel):
             self.filtro_actual = ""
             self.offset = 0
             self.tree.delete(*self.tree.get_children())
+            # Ocultar el botón inicialmente y dejar que cargar_mas() determine si debe mostrarse
+            if hasattr(self, 'btn_mas'):
+                self.btn_mas.place_forget()
+            # Reiniciar scroll al inicio
+            self.tree.yview_moveto(0)
             self.cargar_mas()
         else:
             self.timer_busqueda = self.after(800, self.buscar)
 
     def on_scroll(self, event):
-        if self.hay_mas_registros:
+        # Solo mostrar el botón si hay más registros Y hay suficientes registros cargados
+        if self.hay_mas_registros and len(self.tree.get_children()) >= self.FILAS_POR_BLOQUE:
             # Obtener la posición del scroll
             top, bottom = self.tree.yview()
-            # Si está cerca del final (85% o más), mostrar el botón en el medio
+            # Si está cerca del final (85% o más), mostrar el botón "+" en el centro
             if bottom >= 0.85:
-                self.btn_mas.pack(side="left", padx=5, pady=5, expand=True, after=self.btn_actualizar)
+                # Obtener las dimensiones del frame de botones para centrar el "+"
+                frame_width = self.btn_actualizar.master.winfo_width()
+                if frame_width > 1:  # Solo si el frame ya tiene dimensiones
+                    # Calcular posición centrada
+                    x_centro = frame_width // 2 - 20  # Ajustar para centrar mejor
+                    # Usar la misma posición Y que los otros botones (5px de padding)
+                    self.btn_mas.place(x=x_centro, y=5, height=32)  # Misma altura que los otros
             else:
-                self.btn_mas.pack_forget()
+                self.btn_mas.place_forget()
+        else:
+            # Si no hay más registros o hay pocos registros, ocultar el botón
+            self.btn_mas.place_forget()
 
     def cargar_mas_manual(self):
         self.cargar_mas()
-        self.btn_mas.pack_forget()
+        self.btn_mas.place_forget()
