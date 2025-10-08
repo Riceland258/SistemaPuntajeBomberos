@@ -1,7 +1,13 @@
 # ====================== IMPORTACIONES ======================
 import tkinter as tk
-from Axel_Operaciones_Personal import registrar_personal_revision
-from Axel_Operaciones_Personal import abrir_ventana_listado_cuerpo_bomberos
+from Axel_Operaciones_Personal import (
+    registrar_bombero, abrir_ventana_listado_cuerpo_bomberos, limpiar_campos,
+    verificar_legajo_borrado, reincorporar_bombero
+)
+from Axel_Utilidades import (
+    configurar_validacion_numerica, prevenir_doble_click, bloquear_botones_personal,
+    mostrar_info_personalizado, mostrar_advertencia_personalizado, mostrar_error_personalizado, preguntar_si_no_personalizado
+)
 
 # ====================== VENTANA ======================
 
@@ -15,8 +21,8 @@ class VentanaPersonal(tk.Tk):
 
     def crear_widgets(self):
         # MENUS
-        opciones_rango_bombero = ["1", "2", "3"]
-        self.var_rango = tk.StringVar(value=opciones_rango_bombero[0])
+        opciones_rol_bombero = ["1", "2", "3"]
+        self.var_rol = tk.StringVar(value=opciones_rol_bombero[0])
 
         # CONTENEDOR
         contenedor = tk.Frame(self, width=400, bg="#333333", bd=2, relief="ridge")
@@ -75,12 +81,12 @@ class VentanaPersonal(tk.Tk):
         )
         self.entrada_nombre.grid(row=4, column=1, pady=(0,10), padx=(5,10), sticky="we")
 
-        # RANGO
+        # ROL
         tk.Label(
-            contenedor, text="Rango:",
+            contenedor, text="Rol:",
             font=("Arial", 14, "bold"), bg="#333333", fg="white"
         ).grid(row=5, column=0, pady=5, padx=10, sticky="w")
-        menu_punto_conducta = tk.OptionMenu(contenedor, self.var_rango, *opciones_rango_bombero)
+        menu_punto_conducta = tk.OptionMenu(contenedor, self.var_rol, *opciones_rol_bombero)
         menu_punto_conducta.config(
             font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666", relief="flat"
         )
@@ -97,15 +103,18 @@ class VentanaPersonal(tk.Tk):
             font=("Arial", 14, "bold"), bg="#4d4d4d", fg="white", show="*", insertbackground="white"
         )
         self.entrada_pass.grid(row=8, column=0, columnspan=2, pady=(0,10), padx=10, sticky="we")
+        
+        # CONFIGURAR VALIDACIONES
+        self.configurar_validaciones()
 
         # DICCIONARIO
-        entradas_personal = [
+        self.entradas_personal = [
             self.entrada_legajo,
             self.entrada_apellido,
             self.entrada_nombre,
             self.entrada_dni,
             self.entrada_pass,
-            self.var_rango
+            self.var_rol
         ]
 
         # FRAME BOTONES
@@ -118,7 +127,7 @@ class VentanaPersonal(tk.Tk):
             frame_botones, text="Ingresar Personal",
             font=("Arial", 14, "bold"), bg="#ffd966", fg="black", activebackground="#ff6666", activeforeground="white",
             relief="flat", bd=0, height=2,
-            command=lambda: registrar_personal_revision(entradas_personal),
+            command=self.registrar_personal_dc,
         ).grid(row=0, column=0, columnspan=2, padx=5, pady=(0,10), sticky="we")
 
         # BOTÓN CUERPO BOMBEROS
@@ -136,6 +145,53 @@ class VentanaPersonal(tk.Tk):
             relief="flat", bd=0, height=2,
             command=self.destroy
         ).grid(row=2, column=0, columnspan=2, padx=5, pady=(0,10), sticky="we")
+
+        # Bloquear botones según permisos
+        bloquear_botones_personal(self)
+
+    def configurar_validaciones(self):
+        # Usar función centralizada para validaciones numéricas
+        configurar_validacion_numerica(self.entrada_legajo)
+        configurar_validacion_numerica(self.entrada_dni)
+
+    def registrar_personal_dc(self):
+        prevenir_doble_click(self, "Ingresar")
+        
+        # PASO 1: Verificar si hay legajo para comprobar reincorporación
+        legajo_text = self.entrada_legajo.get().strip()
+        if legajo_text:
+            try:
+                legajo_int = int(legajo_text)
+                if legajo_int > 0:
+                    # PASO 2: Verificar si el legajo existe pero está borrado
+                    legajo_borrado = verificar_legajo_borrado(legajo_int)
+                    if legajo_borrado:
+                        nombre_bombero = legajo_borrado[1]
+                        respuesta = preguntar_si_no_personalizado(
+                            "Bombero Disponible para Reincorporar",
+                            f"El Bombero ({nombre_bombero}) está disponible para reincorporar.\n\n¿Desea reincorporarlo?",
+                            self
+                        )
+                        
+                        if respuesta:
+                            # PASO 3: Intentar reincorporar
+                            if reincorporar_bombero(legajo_int):
+                                mostrar_info_personalizado("Éxito", "Bombero reincorporado correctamente", self)
+                                self.limpiar_formulario()
+                                return
+                            else:
+                                mostrar_error_personalizado("Error", "No se pudo reincorporar el bombero", self)
+                                return
+                        else:
+                            return  # Usuario canceló la reincorporación
+            except ValueError:
+                pass  # Si no es número válido, continuar con registro normal
+        
+        # PASO 4: Si no hay reincorporación, proceder con registro normal
+        registrar_bombero(self.entradas_personal)
+
+    def limpiar_formulario(self):
+        limpiar_campos(self.entradas_personal)
 
 if __name__ == "__main__":
     app = VentanaPersonal()

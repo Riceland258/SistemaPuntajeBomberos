@@ -1,6 +1,7 @@
 # ====================== IMPORTACIONES ======================
 import tkinter as tk
-from Axel_Operaciones_Conducta import actualizar_conducta_revision, procesar_actualizacion
+from Axel_Operaciones_Conducta import actualizar_conducta_revision, borrar_conducta
+from Axel_Utilidades import bloquear_botones_conducta, prevenir_doble_click, mostrar_info_personalizado, mostrar_error_personalizado, preguntar_si_no_personalizado
 
 # ====================== VENTANA ======================
 
@@ -70,6 +71,9 @@ class VentanaEditorConducta(tk.Toplevel):
         self.entrada_anio.insert(0, str(self.fila["anio"]))
         self.entrada_anio.grid(row=0, column=1, padx=(5,0), sticky="we")
 
+        # VALIDACIONES
+        self.configurar_validaciones()
+
         # FRAME BOTONES
         frame_botones = tk.Frame(contenedor, bg="#333333")
         frame_botones.grid(row=7, column=0, pady=(20,0), sticky="we")
@@ -79,11 +83,68 @@ class VentanaEditorConducta(tk.Toplevel):
         # BOTÓN ACTUALIZAR
         tk.Button(frame_botones, text="Actualizar",
                 font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666", height=2,
-                command=lambda: procesar_actualizacion(self)
+                command=self.procesar_actualizacion
             ).grid(row=0, column=0, padx=5, sticky="we")
+
+        # BOTÓN BORRAR
+        tk.Button(frame_botones, text="Borrar",
+                font=("Arial", 14, "bold"), bg="#ff4d4d", fg="white", activebackground="#ff6666", height=2,
+                command=self.borrar_conducta_dc
+            ).grid(row=0, column=1, padx=5, sticky="we")
 
         # BOTÓN CANCELAR
         tk.Button(frame_botones, text="Cancelar",
                 font=("Arial", 14, "bold"), bg="#ffd966", fg="black", activebackground="#ff6666", height=2,
                 command=self.destroy
-            ).grid(row=0, column=1, padx=5, sticky="we")
+            ).grid(row=1, column=0, columnspan=2, padx=5, pady=(10,0), sticky="we")
+
+        # Bloquear botones según permisos
+        bloquear_botones_conducta(self)
+
+    def configurar_validaciones(self):
+        # Validación para solo números en legajo y año
+        def solo_numeros(char):
+            return char.isdigit()
+        
+        validacion_numeros = (self.register(solo_numeros), '%S')
+        
+        self.entrada_legajo.config(validate='key', validatecommand=validacion_numeros)
+        self.entrada_anio.config(validate='key', validatecommand=validacion_numeros)
+
+    def procesar_actualizacion(self):
+        entradas_conducta = [
+            self.entrada_legajo,
+            self.var_punto,
+            self.var_mes,
+            self.entrada_anio
+        ]
+        actualizado = actualizar_conducta_revision(self.id_conducta, entradas_conducta)
+        if actualizado:
+            if self.listado:
+                self.listado.recargar_tabla()
+            self.destroy()
+
+    def borrar_conducta_dc(self):
+        try:
+            # Prevenir doble click
+            prevenir_doble_click(self, "Borrar")
+            
+            # Confirmación de borrado
+            confirmacion = preguntar_si_no_personalizado(
+                "Confirmar", 
+                "¿Seguro que quieres borrar esta conducta?",
+                self
+            )
+            
+            if confirmacion:
+                exito = borrar_conducta(self.id_conducta)
+                if exito:
+                    mostrar_info_personalizado("Éxito", "Puntaje de conducta eliminado", self)
+                    if self.listado:
+                        self.listado.recargar_tabla()
+                    self.destroy()
+                else:
+                    mostrar_error_personalizado("Error", "No se pudo eliminar el puntaje", self)
+                    
+        except Exception:
+            mostrar_error_personalizado("Error", "Error al eliminar", self)
